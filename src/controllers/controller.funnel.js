@@ -33,7 +33,7 @@ module.exports = function(Chart) {
 		hover: {
 			mode: "label"
 		},
-		sort: 'asc',// sort options: 'asc', 'desc'
+		sort: 'none', // sort options: 'asc', 'desc', 'none'
 		gap: 2,
 		bottomWidth: null,// the bottom width of funnel
 		topWidth: 0, // the top width of funnel
@@ -176,9 +176,13 @@ module.exports = function(Chart) {
 						function (a, b) {
 							return a.val - b.val;
 						} :
-						function (a, b) {
-							return b.val - a.val;
-						}
+						sort === 'desc' ?
+							function (a, b) {
+								return b.val - a.val;
+							} :
+							function (a, b) {
+								return null;
+							}
 				);
 			// For render hidden view
 			// TODO: optimization....
@@ -231,7 +235,7 @@ module.exports = function(Chart) {
 				);
 				upperWidth = previousElement ? previousElement.val * dwRatio : me.topWidth;
 				bottomWidth = elementData.val * dwRatio;
-			} else {
+			} else if (sort === 'desc') {
 				var nextElement = helpers.findNextWhere(me.sortedDataAndLabels,
 					function (el) {
 						return !el.hidden;
@@ -240,6 +244,15 @@ module.exports = function(Chart) {
 				);
 				upperWidth = elementData.val * dwRatio;
 				bottomWidth = nextElement ? nextElement.val * dwRatio : me.topWidth;
+			} else {
+				var element = helpers.findNextWhere(me.sortedDataAndLabels,
+					function (el) {
+						return !el.hidden;
+					},
+					index
+				);
+				upperWidth = elementData.val * dwRatio;
+				bottomWidth = element ? element.val * dwRatio : upperWidth; //me.topWidth;
 			}
 
 			y = chartArea.top + viewIndex * (elHeight + gap);
@@ -273,7 +286,7 @@ module.exports = function(Chart) {
 					borderWidth: borderWidth,
 					backgroundColor: elementData && elementData.backgroundColor,
 					borderColor: elementData && elementData.borderColor,
-					label: elementData && elementData.label
+					label: (elementData && elementData.label) + "@@@"
 				}
 			});
 
